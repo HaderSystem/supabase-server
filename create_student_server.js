@@ -91,6 +91,15 @@ app.post('/create_student_server', upload.single('face_image'), async (req, res)
 
         const studentId = insertData[0].student_id;
 
+        // 4.1 Update user metadata to include student_id
+await supabase.auth.admin.updateUserById(userId, {
+    user_metadata: {
+        full_name: name,
+        role,
+        student_id: studentId  // ✅ هذا السطر هو اللي يخلي الرقم الجامعي يظهر في التطبيق
+    }
+});
+
         // 5. Send email to student
         await transporter.sendMail({
             from: 'hadersystem@gmail.com',
@@ -113,6 +122,31 @@ app.post('/create_student_server', upload.single('face_image'), async (req, res)
         return res.status(500).json({ error: 'Server error' });
     }
 });
+
+
+
+
+
+app.delete('/delete_user/:id', async (req, res) => {
+    const userId = req.params.id;
+
+    try {
+       
+        // حذف من جدول الطلاب أو المعلمين
+        await supabase.from('students').delete().eq('id', userId); // لو كان طالب
+       
+     await supabase.from('teachers').delete().eq('id', userId); // لو كان معلم
+     
+ // حذف من Supabase Auth
+        await supabase.auth.admin.deleteUser(userId);
+
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('❌ Error deleting user:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 // Start server
 const PORT = 3000;

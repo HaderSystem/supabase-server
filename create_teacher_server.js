@@ -86,6 +86,25 @@ app.post('/create_teacher_server', async (req, res) => {
         }
 
         const employeeId = teacherRow.employee_id;
+        
+        // ✅ Update user metadata with employee_id
+const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
+  user_metadata: {
+    name,
+    role: 'teacher',
+    employee_id: employeeId
+  }
+});
+
+if (updateError) {
+  console.error('Metadata update error:', updateError);
+  return res.status(500).json({ 
+    error: 'Failed to update user metadata', 
+    details: updateError 
+  });
+}
+
+
 
         // Send email with credentials and employee ID
         const mailOptions = {
