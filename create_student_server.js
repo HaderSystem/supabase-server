@@ -4,6 +4,7 @@ const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
@@ -14,17 +15,16 @@ const upload = multer({ dest: 'uploads/' });
 
 // Supabase setup
 const supabase = createClient(
-    'https://gnorslgqghumwmgoqwhk.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdub3JzbGdxZ2h1bXdtZ29xd2hrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTIzMDUzNSwiZXhwIjoyMDYwODA2NTM1fQ.ybht5pNxY4QC4dHMGGOD-Rj66LATISW5N9DiHMNLeIs'
-
+   process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY
 );
 
 // Email setup
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'hadersystem@gmail.com',
-        pass: 'etmfpsahknesrejo',
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
     },
 });
 
@@ -91,16 +91,16 @@ app.post('/create_student_server', upload.single('face_image'), async (req, res)
 
         const studentId = insertData[0].student_id;
 
-        // 4.1 Update user metadata to include student_id
+        // Update user metadata to include student_id
 await supabase.auth.admin.updateUserById(userId, {
     user_metadata: {
         full_name: name,
         role,
-        student_id: studentId  // ✅ هذا السطر هو اللي يخلي الرقم الجامعي يظهر في التطبيق
+        student_id: studentId 
     }
 });
 
-        // 5. Send email to student
+        //  Send email to student
         await transporter.sendMail({
             from: 'hadersystem@gmail.com',
             to: email,
@@ -108,7 +108,7 @@ await supabase.auth.admin.updateUserById(userId, {
             text: `Hello ${name}, \nYour student account has been created.\n\nEmail: ${email}\nPassword: ${password}\n\nPlease log in and change your password.\n\n- Hader System`,
         });
 
-        // 6. Clean up local uploaded file
+
         fs.unlinkSync(imageFile.path);
 
         return res.json({

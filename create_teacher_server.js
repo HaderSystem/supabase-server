@@ -3,6 +3,7 @@ const { createClient } = require('@supabase/supabase-js');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
@@ -10,17 +11,16 @@ app.use(express.json());
 
 // Supabase setup
 const supabase = createClient(
-    'https://gnorslgqghumwmgoqwhk.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdub3JzbGdxZ2h1bXdtZ29xd2hrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NTIzMDUzNSwiZXhwIjoyMDYwODA2NTM1fQ.ybht5pNxY4QC4dHMGGOD-Rj66LATISW5N9DiHMNLeIs'
-
+     process.env.SUPABASE_URL,
+    process.env.SUPABASE_KEY
 );
 
 // Email setup
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'hadersystem@gmail.com',
-        pass: 'etmfpsahknesrejo'
+   user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
     }
 });
 
@@ -87,7 +87,7 @@ app.post('/create_teacher_server', async (req, res) => {
 
         const employeeId = teacherRow.employee_id;
         
-        // ✅ Update user metadata with employee_id
+        //  Update user metadata with employee_id
 const { error: updateError } = await supabase.auth.admin.updateUserById(userId, {
   user_metadata: {
     name,
@@ -106,7 +106,7 @@ if (updateError) {
 
 
 
-        // Send email with credentials and employee ID
+        // Send email with employee ID
         const mailOptions = {
             from: 'hadersystem@gmail.com',
             to: email,
@@ -133,6 +133,8 @@ Please login and change your password.
     }
 });
 
+
+//turn on server
 const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`✅ Teacher server with email running on port ${PORT}`);
